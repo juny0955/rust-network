@@ -17,6 +17,7 @@ fn main() {
             println!("cidr: {:?}", cidr);
             println!("subnet_mask: {:?}", cidr.subnet_mask());
             println!("network_address: {:?}", cidr.network_address());
+            println!("brodcast_address: {:?}", cidr.broadcast_address());
         }
         Err(e) => eprintln!("{:?}", e),
     }
