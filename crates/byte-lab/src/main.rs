@@ -1,3 +1,7 @@
+use crate::endian::to_big_endian_bytes;
+
+mod endian;
+
 fn main() {
-    println!("Hello, world!");
+    println!("{:?}", to_big_endian_bytes(0x1234));
 }
