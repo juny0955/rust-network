@@ -17,7 +17,7 @@ fn main() {
             println!("input: {}/{}", formatting(cidr.ip), cidr.prefix_len);
             println!("subnet_mask: {}", formatting(cidr.subnet_mask()));
             println!("network_address: {}", formatting(cidr.network_address()));
-            println!("brodcast_address: {}", formatting(cidr.broadcast_address()));
+            println!("broadcast_address: {}", formatting(cidr.broadcast_address()));
         }
         Err(e) => eprintln!("{:?}", e),
     }
