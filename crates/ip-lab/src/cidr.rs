@@ -29,6 +29,28 @@ impl Cidr {
 
         Ok(Self { ip, prefix_len })
     }
+
+    pub fn subnet_mask(&self) -> [u8; 4] {
+        let mut subnet_mask = [0, 0, 0, 0];
+
+        let finish = self.prefix_len / 8;
+        let remaining = self.prefix_len % 8;
+        let last_mask = if remaining != 0 {
+            u8::MAX << (8 - remaining)
+        } else {
+            0
+        };
+
+        for i in 0..4 {
+            if i < finish {
+                subnet_mask[i as usize] = 255;
+            } else {
+                subnet_mask[i as usize] = last_mask;
+            }
+        }
+
+        subnet_mask
+    }
 }
 
 #[cfg(test)]
@@ -101,5 +123,18 @@ mod tests {
     fn 범위_큰_옥텟() {
         let cidr = Cidr::parse("300.0.0.1/24");
         assert_matches!(cidr, Err(CidrErr::InvalidIpAddress));
+    }
+
+    #[test]
+    fn subnet_mask_계산() {
+        let prefix_0 = Cidr::parse("1.1.1.1/0").expect("유요한 CIDR은 파싱되어야 한다");
+        let prefix_24 = Cidr::parse("1.1.1.1/24").expect("유요한 CIDR은 파싱되어야 한다");
+        let prefix_30 = Cidr::parse("1.1.1.1/30").expect("유요한 CIDR은 파싱되어야 한다");
+        let prefix_32 = Cidr::parse("1.1.1.1/32").expect("유요한 CIDR은 파싱되어야 한다");
+
+        assert_eq!(prefix_0.subnet_mask(), [0, 0, 0, 0]);
+        assert_eq!(prefix_24.subnet_mask(), [255, 255, 255, 0]);
+        assert_eq!(prefix_30.subnet_mask(), [255, 255, 255, 252]);
+        assert_eq!(prefix_32.subnet_mask(), [255, 255, 255, 255]);
     }
 }

@@ -12,5 +12,11 @@ fn main() {
         .read_line(&mut input)
         .expect("입력 읽기 중 오류");
 
-    let cidr = Cidr::parse(input.trim());
+    match Cidr::parse(input.trim()) {
+        Ok(cidr) => {
+            println!("cidr: {:?}", cidr);
+            println!("subnet_mask: {:?}", cidr.subnet_mask());
+        }
+        Err(e) => eprintln!("{:?}", e),
+    }
 }
