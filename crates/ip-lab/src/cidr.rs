@@ -51,6 +51,17 @@ impl Cidr {
 
         subnet_mask
     }
+
+    pub fn network_address(&self) -> [u8; 4] {
+        let subnet_mask = self.subnet_mask();
+
+        [
+            self.ip[0] & subnet_mask[0],
+            self.ip[1] & subnet_mask[1],
+            self.ip[2] & subnet_mask[2],
+            self.ip[3] & subnet_mask[3],
+        ]
+    }
 }
 
 #[cfg(test)]
@@ -136,5 +147,18 @@ mod tests {
         assert_eq!(prefix_24.subnet_mask(), [255, 255, 255, 0]);
         assert_eq!(prefix_30.subnet_mask(), [255, 255, 255, 252]);
         assert_eq!(prefix_32.subnet_mask(), [255, 255, 255, 255]);
+    }
+
+    #[test]
+    fn network_address_계산() {
+        let test1 = Cidr::parse("192.168.1.10/24").expect("유요한 CIDR은 파싱되어야 한다");
+        let test2 = Cidr::parse("192.168.1.10/30").expect("유요한 CIDR은 파싱되어야 한다");
+        let test3 = Cidr::parse("10.0.0.1/0").expect("유요한 CIDR은 파싱되어야 한다");
+        let test4 = Cidr::parse("10.0.0.1/32").expect("유요한 CIDR은 파싱되어야 한다");
+
+        assert_eq!(test1.network_address(), [192, 168, 1, 0]);
+        assert_eq!(test2.network_address(), [192, 168, 1, 8]);
+        assert_eq!(test3.network_address(), [0, 0, 0, 0]);
+        assert_eq!(test4.network_address(), [10, 0, 0, 1]);
     }
 }
