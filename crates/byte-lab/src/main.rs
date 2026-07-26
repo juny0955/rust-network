@@ -13,8 +13,8 @@ fn main() {
     println!("from_be_u16: 0x{from_be_u16:04X}");
 
     let to_be_u32 = to_be_u32(bytes_u32);
-    println!("to_be_u16: {:?}", to_be_u32);
+    println!("to_be_u32: {:?}", to_be_u32);
 
     let from_be_u32 = from_be_u32(to_be_u32);
-    println!("from_be_u16: 0x{from_be_u32:08X}");
+    println!("from_be_u32: 0x{from_be_u32:08X}");
 }
