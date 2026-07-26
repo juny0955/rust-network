@@ -7,7 +7,12 @@ pub fn from_be_u16(value: [u8; 2]) -> u16 {
 }
 
 pub fn to_be_u32(value: u32) -> [u8; 4] {
-    [(value >> 24) as u8, (value >> 16) as u8, (value >> 8) as u8, (value & 0x00FF) as u8]
+    [
+        (value >> 24) as u8,
+        (value >> 16) as u8,
+        (value >> 8) as u8,
+        (value & 0x00FF) as u8,
+    ]
 }
 
 pub fn from_be_u32(value: [u8; 4]) -> u32 {
