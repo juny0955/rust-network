@@ -22,15 +22,34 @@ fn main() -> Result<()> {
         }
     };
 
-    for message in ["hello", "world"] {
-        stream.write_all(message.as_bytes())?;
+    stream.write_all(b"hel")?;
+    stream.write_all(b"lo\n")?;
+    stream.write_all(b"w")?;
+    stream.write_all(b"orld\n")?;
 
+    let mut pending = Vec::new();
+    let mut recv_frams = 0;
+
+    while recv_frams < 2 {
         let mut buf = [0; 1024];
         let amt = stream.read(&mut buf)?;
 
-        match from_utf8(&buf[..amt]) {
-            Ok(message) => println!("Message 수신: {}", message),
-            Err(e) => eprintln!("Message 변환 실패: {e}"),
+        if amt == 0 {
+            eprintln!("모든 Echo 응답 수신 전 서버 연결 종료됨");
+            break;
+        }
+
+        pending.extend_from_slice(&buf[..amt]);
+
+        while let Some(newline_idx) = pending.iter().position(|&byte| byte == b'\n') {
+            let frames: Vec<u8> = pending.drain(..=newline_idx).collect();
+
+            match from_utf8(&frames) {
+                Ok(message) => println!("Message 수신: {message}"),
+                Err(e) => eprintln!("Message 변환 실패: {e}"),
+            };
+
+            recv_frams += 1;
         }
     }
 
