@@ -1,29 +1,24 @@
-use std::{
-    io::{
-        ErrorKind::{TimedOut, WouldBlock},
-        Result,
-    },
-    net::UdpSocket,
-    str::from_utf8,
-    time::Duration,
-};
+use std::{io::Result, str::from_utf8, time::Duration};
+
+use tokio::{net::UdpSocket, time::timeout};
 
 const READ_TIMEOUT: Duration = Duration::from_secs(3);
 
-fn main() -> Result<()> {
-    let socket = UdpSocket::bind("127.0.0.1:0")?;
-    socket.set_read_timeout(Some(READ_TIMEOUT))?;
+#[tokio::main]
+async fn main() -> Result<()> {
+    let socket = UdpSocket::bind("127.0.0.1:0").await?;
+    // socket.set_read_timeout(Some(READ_TIMEOUT)).await?;
 
     let mut buf = [0; 1024];
-    socket.send_to(b"hello", "127.0.0.1:7000")?;
+    socket.send_to(b"hello", "127.0.0.1:7000").await?;
 
-    let (amt, src) = match socket.recv_from(&mut buf) {
-        Ok((amt, src)) => (amt, src),
-        Err(e) if matches!(e.kind(), TimedOut | WouldBlock) => {
+    let (amt, src) = match timeout(READ_TIMEOUT, socket.recv_from(&mut buf)).await {
+        Ok(Ok((amt, src))) => (amt, src),
+        Ok(Err(e)) => return Err(e),
+        Err(_) => {
             eprintln!("Timeout {}초 동안 응답없음", READ_TIMEOUT.as_secs());
             return Ok(());
         }
-        Err(e) => return Err(e),
     };
 
     match from_utf8(&buf[..amt]) {
