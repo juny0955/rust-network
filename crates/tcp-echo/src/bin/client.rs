@@ -1,15 +1,21 @@
 use std::{
-    io::{ErrorKind, Read, Result, Write},
-    net::{SocketAddr, TcpStream},
+    io::{ErrorKind, Result},
+    net::SocketAddr,
     str::from_utf8,
     time::Duration,
 };
 
+use tokio::{
+    io::{AsyncReadExt, AsyncWriteExt},
+    net::TcpStream,
+};
+
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(3);
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     let addr = SocketAddr::from(([127, 0, 0, 1], 7000));
-    let mut stream = match TcpStream::connect_timeout(&addr, CONNECT_TIMEOUT) {
+    let mut stream = match TcpStream::connect(&addr).await {
         Ok(s) => s,
         Err(e) => {
             match e.kind() {
@@ -22,17 +28,17 @@ fn main() -> Result<()> {
         }
     };
 
-    stream.write_all(b"hel")?;
-    stream.write_all(b"lo\n")?;
-    stream.write_all(b"w")?;
-    stream.write_all(b"orld\n")?;
+    stream.write_all(b"hel").await?;
+    stream.write_all(b"lo\n").await?;
+    stream.write_all(b"w").await?;
+    stream.write_all(b"orld\n").await?;
 
     let mut pending = Vec::new();
     let mut recv_frams = 0;
 
     while recv_frams < 2 {
         let mut buf = [0; 1024];
-        let amt = stream.read(&mut buf)?;
+        let amt = stream.read(&mut buf).await?;
 
         if amt == 0 {
             eprintln!("모든 Echo 응답 수신 전 서버 연결 종료됨");
