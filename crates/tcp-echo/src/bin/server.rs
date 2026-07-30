@@ -1,20 +1,23 @@
-use std::{
-    io::{Read, Result, Write},
+use std::io::Result;
+
+use tokio::{
+    io::{AsyncReadExt, AsyncWriteExt},
     net::TcpListener,
 };
 
-fn main() -> Result<()> {
-    let listener = TcpListener::bind("127.0.0.1:7000")?;
+#[tokio::main]
+async fn main() -> Result<()> {
+    let listener = TcpListener::bind("127.0.0.1:7000").await?;
     println!("TCP server listening");
 
     loop {
-        match listener.accept() {
+        match listener.accept().await {
             Ok((mut stream, addr)) => {
                 let mut pending = Vec::new();
 
                 loop {
                     let mut buf = [0; 1024];
-                    let amt = stream.read(&mut buf)?;
+                    let amt = stream.read(&mut buf).await?;
 
                     if amt == 0 {
                         println!("{addr} 연결 종료");
@@ -25,7 +28,7 @@ fn main() -> Result<()> {
 
                     while let Some(newline_idx) = pending.iter().position(|&byte| byte == b'\n') {
                         let frame: Vec<u8> = pending.drain(..=newline_idx).collect();
-                        stream.write_all(&frame)?;
+                        stream.write_all(&frame).await?;
                     }
                 }
             }
