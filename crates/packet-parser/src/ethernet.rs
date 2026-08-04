@@ -1,5 +1,5 @@
 #[derive(Debug, PartialEq, Eq)]
-pub enum Protocol {
+pub enum EtherType {
     IPv4,
     IPv6,
     ARP,
@@ -9,32 +9,32 @@ pub enum Protocol {
 pub struct Ethernet {
     pub des_mac: [u8; 6],
     pub src_mac: [u8; 6],
-    pub protocol: Protocol,
+    pub ether_type: EtherType,
     pub payload: Vec<u8>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum EthernetError {
     WrongBytes,
-    WrongProtocol,
+    WrongEtherType,
 }
 
 impl Ethernet {
     pub fn parse(bytes: &[u8]) -> Result<Self, EthernetError> {
         if bytes.len() < 14 {
-            eprintln!("바이트 길이가 짧습니다.");
+            eprintln!("Ethernet Frame 바이트 길이가 짧습니다.");
             return Err(EthernetError::WrongBytes);
         }
 
         let des_mac = Self::parse_des_mac_addr(bytes);
         let src_mac: [u8; 6] = Self::parse_src_mac_addr(bytes);
-        let protocol = Self::parse_protocol(bytes)?;
+        let ether_type = Self::parse_ether_type(bytes)?;
         let payload = bytes[14..].to_vec();
 
         Ok(Self {
             des_mac,
             src_mac,
-            protocol,
+            ether_type,
             payload,
         })
     }
@@ -51,16 +51,16 @@ impl Ethernet {
         src_mac
     }
 
-    fn parse_protocol(bytes: &[u8]) -> Result<Protocol, EthernetError> {
+    fn parse_ether_type(bytes: &[u8]) -> Result<EtherType, EthernetError> {
         let type_byte = u16::from_be_bytes([bytes[12], bytes[13]]);
 
         Ok(match type_byte {
-            0x0800 => Protocol::IPv4,
-            0x0806 => Protocol::ARP,
-            0x86DD => Protocol::IPv6,
+            0x0800 => EtherType::IPv4,
+            0x0806 => EtherType::ARP,
+            0x86DD => EtherType::IPv6,
             _ => {
-                eprintln!("protocol 바이트가 잘못되었습니다.");
-                return Err(EthernetError::WrongProtocol);
+                eprintln!("Ethernet Frame EtherType 바이트가 잘못되었습니다.");
+                return Err(EthernetError::WrongEtherType);
             }
         })
     }
@@ -68,7 +68,7 @@ impl Ethernet {
 
 #[cfg(test)]
 mod tests {
-    use crate::ethernet::{Ethernet, EthernetError, Protocol};
+    use crate::ethernet::{EtherType, Ethernet, EthernetError};
 
     #[test]
     fn 정상_파싱() {
@@ -81,7 +81,7 @@ mod tests {
 
         assert_eq!(ethernet.des_mac, [0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]);
         assert_eq!(ethernet.src_mac, [0x11, 0x22, 0x33, 0x44, 0x55, 0x66]);
-        assert_eq!(ethernet.protocol, Protocol::IPv4);
+        assert_eq!(ethernet.ether_type, EtherType::IPv4);
         assert_eq!(ethernet.payload, [0x12, 0x34]);
     }
 
@@ -97,7 +97,7 @@ mod tests {
     }
 
     #[test]
-    fn 프로토콜_타입_틀림() {
+    fn ether_type_틀림() {
         let bytes = [
             0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x08, 0x90,
             0x12, 0x34,
@@ -105,6 +105,6 @@ mod tests {
 
         let ethernet = Ethernet::parse(&bytes);
 
-        assert_eq!(ethernet, Err(EthernetError::WrongProtocol));
+        assert_eq!(ethernet, Err(EthernetError::WrongEtherType));
     }
 }
