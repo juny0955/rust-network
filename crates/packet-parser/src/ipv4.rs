@@ -16,6 +16,7 @@ pub struct IPv4 {
     pub src_ip: [u8; 4],
     pub dst_ip: [u8; 4],
     pub options: Vec<u8>,
+    pub payload: Vec<u8>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -76,6 +77,7 @@ impl IPv4 {
         let src_ip = [bytes[12], bytes[13], bytes[14], bytes[15]];
         let dst_ip = [bytes[16], bytes[17], bytes[18], bytes[19]];
         let options = bytes[20..header_len].to_vec();
+        let payload = bytes[header_len..total_length_usize].to_vec();
 
         Ok(Self {
             version,
@@ -92,6 +94,7 @@ impl IPv4 {
             src_ip,
             dst_ip,
             options,
+            payload,
         })
     }
 
