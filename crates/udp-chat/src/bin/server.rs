@@ -16,7 +16,7 @@ async fn main() -> Result<()> {
             Err(e) => {
                 eprintln!("메세지 변환 오류: {e}");
                 continue;
-            },
+            }
         };
 
         if !clients.contains(&socket_addr) {
