@@ -1,7 +1,9 @@
 use std::{io::Result, net::SocketAddr, str::from_utf8, time::Duration};
 
 use tokio::{
-    io::{self, AsyncBufReadExt, BufReader}, net::UdpSocket, time::timeout,
+    io::{self, AsyncBufReadExt, BufReader},
+    net::UdpSocket,
+    time::timeout,
 };
 
 const DISCOVER_REQUEST: &[u8] = b"CHAT_SERVER";
