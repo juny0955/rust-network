@@ -2,12 +2,15 @@ use std::{io::Result, net::SocketAddr, str::from_utf8};
 
 use tokio::net::UdpSocket;
 
+const DISCOVER_REQUEST: &[u8] = b"CHAT_SERVER";
+const DISCOVER_RESPONSE: &[u8] = b"DISCOVER";
+
 #[tokio::main]
 async fn main() -> Result<()> {
-    let broadcast_socket = UdpSocket::bind("127.0.0.1:9001").await?;
+    let broadcast_socket = UdpSocket::bind("0.0.0.0:9001").await?;
     broadcast_socket.set_broadcast(true)?;
 
-    let socket = UdpSocket::bind("127.0.0.1:9000").await?;
+    let socket = UdpSocket::bind("0.0.0.0:9000").await?;
     let mut clients: Vec<SocketAddr> = Vec::new();
     println!("Server is running");
 
@@ -16,14 +19,19 @@ async fn main() -> Result<()> {
     loop {
         tokio::select! {
             discover = broadcast_socket.recv_from(&mut bc_buf) => {
-                let (_, socket_addr) = discover?;
+                let (amt, socket_addr) = discover?;
+
+                if &bc_buf[..amt] != DISCOVER_REQUEST {
+                    println!("다른 메세지 무시: {:?}", &bc_buf[..amt]);
+                    continue;
+                }
 
                 if !clients.contains(&socket_addr) {
                     println!("join client {socket_addr}");
                     clients.push(socket_addr);
                 }
 
-                broadcast_socket.send_to(&bc_buf, socket_addr).await?;
+                broadcast_socket.send_to(DISCOVER_RESPONSE, socket_addr).await?;
             },
             recv = socket.recv_from(&mut buf) => {
                 let (amt, socket_addr) = recv?;
