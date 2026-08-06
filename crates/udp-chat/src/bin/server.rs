@@ -1,4 +1,4 @@
-use std::{io::Result, net::SocketAddr};
+use std::{io::Result, net::SocketAddr, str::from_utf8};
 
 use tokio::net::UdpSocket;
 
@@ -11,7 +11,13 @@ async fn main() -> Result<()> {
     let mut buf = [0; 1024];
     loop {
         let (amt, socket_addr) = socket.recv_from(&mut buf).await?;
-        let msg = &buf[..amt];
+        let msg = match from_utf8(&buf[..amt]) {
+            Ok(m) => format!("{socket_addr}: {m}"),
+            Err(e) => {
+                eprintln!("메세지 변환 오류: {e}");
+                continue;
+            },
+        };
 
         if !clients.contains(&socket_addr) {
             println!("join client {socket_addr}");
@@ -19,7 +25,9 @@ async fn main() -> Result<()> {
         }
 
         for client in &clients {
-            socket.send_to(msg, client).await?;
+            if socket_addr != *client {
+                socket.send_to(msg.as_bytes(), client).await?;
+            }
         }
     }
 }
