@@ -1,9 +1,11 @@
 use crate::{
+    arp::Arp,
     ethernet::Ethernet,
     icmp::Icmp,
     ipv4::{IPv4, Protocol},
 };
 
+mod arp;
 mod ethernet;
 mod icmp;
 mod ipv4;
@@ -28,7 +30,13 @@ fn main() {
         0x97, 0x49,     // IPv4 header checksum
         192, 168, 0, 1, // source IP
         8, 8, 8, 8,     // destination IP
-        8, 0, 0xE5, 0xCA, 0x12, 0x34, 0x00, 0x01// payload
+
+        // IPv4 Payload
+        8, 
+        0, 
+        0xE5, 0xCA, 
+        0x12, 0x34, 
+        0x00, 0x01
     ];
 
     let ethernet = match Ethernet::parse(&bytes) {
@@ -40,7 +48,19 @@ fn main() {
     };
     println!("Ethernet Packet: {ethernet:?}");
 
-    let ipv4 = match IPv4::parse(&ethernet.payload) {
+    match ethernet.ether_type {
+        ethernet::EtherType::ARP => {
+            arp(&ethernet.payload);
+        }
+        ethernet::EtherType::IPv4 => {
+            ipv4(&ethernet.payload);
+        }
+        ethernet::EtherType::IPv6 => unreachable!(),
+    }
+}
+
+fn ipv4(payload: &[u8]) {
+    let ipv4 = match IPv4::parse(payload) {
         Ok(i) => i,
         Err(e) => {
             eprintln!("IPv4 패킷 파싱 실패: {e:?}");
@@ -62,4 +82,15 @@ fn main() {
         }
         _ => unreachable!(),
     }
+}
+
+fn arp(payload: &[u8]) {
+    let arp = match Arp::parse(payload) {
+        Ok(a) => a,
+        Err(e) => {
+            eprintln!("ARP 파싱 실패: {e:?}");
+            return;
+        }
+    };
+    println!("ARP: {arp:?}");
 }
