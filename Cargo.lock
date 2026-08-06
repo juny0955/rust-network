@@ -116,6 +116,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "udp-chat"
+version = "0.1.0"
+dependencies = [
+ "tokio",
+]
+
+[[package]]
 name = "udp-echo"
 version = "0.1.0"
 dependencies = [
