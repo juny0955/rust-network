@@ -123,6 +123,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "udp-discovery"
+version = "0.1.0"
+dependencies = [
+ "tokio",
+]
+
+[[package]]
 name = "udp-echo"
 version = "0.1.0"
 dependencies = [
