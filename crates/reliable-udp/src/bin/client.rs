@@ -21,7 +21,7 @@ async fn main() -> Result<()> {
 
                 let resp_seq = match parts[1].parse::<u64>() {
                     Ok(s) => s,
-                    Err(e) => {
+                    Err(_) => {
                         eprintln!("잘못되 응답");
                         break;
                     }
