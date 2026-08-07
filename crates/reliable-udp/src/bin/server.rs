@@ -8,6 +8,7 @@ async fn main() -> Result<()> {
 
     let mut buf = [0; 1024];
     let mut last_recv_seq = 0;
+    let mut cnt = 0;
     loop {
         if let Ok((amt, addr)) = socket.recv_from(&mut buf).await {
             let msg = String::from_utf8_lossy(&buf[..amt]);
@@ -29,6 +30,11 @@ async fn main() -> Result<()> {
             if recv_seq > last_recv_seq {
                 last_recv_seq = recv_seq;
                 println!("{addr} recv payload: {}", parts[2]);
+            }
+
+            if cnt == 0 {
+                cnt += 1;
+                continue;
             }
 
             socket

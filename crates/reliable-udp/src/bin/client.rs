@@ -8,12 +8,12 @@ async fn main() -> Result<()> {
     let server_addr = SocketAddr::from(([127, 0, 0, 1], 9000));
 
     let seq = 1;
-    socket
-        .send_to(format!("DATA:{seq}:hello").as_bytes(), server_addr)
-        .await?;
-
     let mut buf = [0; 1024];
     for _ in 0..3 {
+        socket
+            .send_to(format!("DATA:{seq}:hello").as_bytes(), server_addr)
+            .await?;
+
         match timeout(Duration::from_secs(1), socket.recv_from(&mut buf)).await {
             Ok(Ok((amt, _))) => {
                 let msg = String::from_utf8_lossy(&buf[..amt]);
@@ -22,7 +22,7 @@ async fn main() -> Result<()> {
                 let resp_seq = match parts[1].parse::<u64>() {
                     Ok(s) => s,
                     Err(_) => {
-                        eprintln!("잘못되 응답");
+                        eprintln!("잘못된 응답");
                         break;
                     }
                 };
