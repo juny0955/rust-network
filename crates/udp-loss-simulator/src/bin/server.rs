@@ -12,7 +12,7 @@ fn main() -> Result<()> {
             if msg == "END" {
                 break;
             }
-            
+
             if let Some((seq, _)) = msg.split_once(':') {
                 match seq.parse::<u64>() {
                     Ok(s) => {

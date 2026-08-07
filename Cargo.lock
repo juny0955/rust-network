@@ -62,6 +62,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "reliable-udp"
+version = "0.1.0"
+dependencies = [
+ "tokio",
+]
+
+[[package]]
 name = "socket2"
 version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
